@@ -15,6 +15,11 @@ plugins {
 tasks.test {
     useJUnitPlatform()
     enabled = gradle.startParameter.taskNames.any { it == "test" }
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
 }
 
 repositories {
