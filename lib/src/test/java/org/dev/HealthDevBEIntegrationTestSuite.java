@@ -1,4 +1,4 @@
-package org;
+package org.dev;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,8 +9,7 @@ import java.nio.file.Path;
 import org.client.HealthBEServiceJavaClient;
 import org.junit.jupiter.api.Test;
 
-public class HealthBEIntegrationTestSuite {
-
+public class HealthDevBEIntegrationTestSuite {
     private final HealthBEServiceJavaClient client = new HealthBEServiceJavaClient("http://localhost:8080");
 
     @Test
@@ -29,5 +28,4 @@ public class HealthBEIntegrationTestSuite {
         Path path = Path.of("src", "test", "resources", filename);
         return Files.readString(path).trim();
     }
-
 }
