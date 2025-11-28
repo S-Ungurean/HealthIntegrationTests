@@ -10,7 +10,7 @@ import org.client.HealthBEServiceJavaClient;
 import org.junit.jupiter.api.Test;
 
 public class HealthDevBEIntegrationTestSuite {
-    private final HealthBEServiceJavaClient client = new HealthBEServiceJavaClient("http://TBD:8080");
+    private final HealthBEServiceJavaClient client = new HealthBEServiceJavaClient("https://dev.aegiscan.app");
 
     @Test
     void testUpload() throws Exception {
