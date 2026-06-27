@@ -135,6 +135,134 @@ public class HealthDevBEIntegrationTestSuite {
 
 
     // -------------------------------------------------------------------------
+    // Survey
+    // -------------------------------------------------------------------------
+
+    @Test
+    void survey_happyPath_validJobId_returns200() throws Exception {
+        String content = readBase64FromFile("DogFur.txt");
+        HttpResponse<String> uploadResponse = client.uploadImageWithAnimalType("DogFur.jpg", content, "DOG");
+        assertEquals(202, uploadResponse.statusCode());
+
+        String jobId = extractJobId(uploadResponse.body());
+        assertNotNull(jobId);
+
+        HttpResponse<String> surveyResponse = client.submitSurvey(
+                jobId, "adult", "less_than_24h", "normal_active", "pink_normal");
+        assertEquals(200, surveyResponse.statusCode());
+    }
+
+    @Test
+    void survey_invalidJobIdFormat_returns400() throws Exception {
+        HttpResponse<String> response = client.submitSurvey(
+                "not-a-valid-id!", "adult", "less_than_24h", "normal_active", "pink_normal");
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void survey_nonExistentJobId_returns404() throws Exception {
+        String ghostJobId = "0000000000000000000000000000000000000000000000000000000000000002";
+        HttpResponse<String> response = client.submitSurvey(
+                ghostJobId, "adult", "less_than_24h", "normal_active", "pink_normal");
+        assertEquals(404, response.statusCode());
+    }
+
+    @Test
+    void survey_invalidAnswerValues_returns400() throws Exception {
+        String content = readBase64FromFile("DogFur.txt");
+        HttpResponse<String> uploadResponse = client.uploadImageWithAnimalType("DogFur.jpg", content, "DOG");
+        assertEquals(202, uploadResponse.statusCode());
+
+        String jobId = extractJobId(uploadResponse.body());
+        assertNotNull(jobId);
+
+        HttpResponse<String> response = client.submitSurveyRaw(jobId, """
+            {
+                "age_group": "INVALID_VALUE",
+                "symptom_duration": "less_than_24h",
+                "energy_level": "normal_active",
+                "gum_color": "pink_normal"
+            }
+        """);
+        assertEquals(400, response.statusCode());
+    }
+
+    // -------------------------------------------------------------------------
+    // Text-Only Survey
+    // -------------------------------------------------------------------------
+
+    @Test
+    void textOnlySurvey_happyPath_returns200WithAllFields() throws Exception {
+        HttpResponse<String> response = client.submitTextOnlySurvey(
+                "adult", "less_than_24h", "normal_active", "pink_normal");
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.body().contains("jobId"));
+        assertTrue(response.body().contains("triageTier"));
+        assertTrue(response.body().contains("summary"));
+    }
+
+    @Test
+    void textOnlySurvey_lowRiskAnswers_returnsTierLow() throws Exception {
+        HttpResponse<String> response = client.submitTextOnlySurvey(
+                "adult", "less_than_24h", "normal_active", "pink_normal");
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.body().contains("LOW"));
+    }
+
+    @Test
+    void textOnlySurvey_shortCircuitAnswers_returnsTierHigh() throws Exception {
+        HttpResponse<String> response = client.submitTextOnlySurvey(
+                "adult", "less_than_24h", "unresponsive", "pink_normal");
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.body().contains("HIGH"));
+    }
+
+    @Test
+    void textOnlySurvey_invalidAnswerValue_returns400() throws Exception {
+        HttpResponse<String> response = client.submitTextOnlySurveyRaw("""
+            {
+                "age_group": "INVALID_VALUE",
+                "symptom_duration": "less_than_24h",
+                "energy_level": "normal_active",
+                "gum_color": "pink_normal"
+            }
+        """);
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void textOnlySurvey_missingField_returns400() throws Exception {
+        HttpResponse<String> response = client.submitTextOnlySurveyRaw("""
+            {
+                "age_group": "adult",
+                "symptom_duration": "less_than_24h",
+                "energy_level": "normal_active"
+            }
+        """);
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void textOnlySurvey_jobIdIsUniquePerRequest() throws Exception {
+        HttpResponse<String> r1 = client.submitTextOnlySurvey(
+                "adult", "less_than_24h", "normal_active", "pink_normal");
+        HttpResponse<String> r2 = client.submitTextOnlySurvey(
+                "adult", "less_than_24h", "normal_active", "pink_normal");
+
+        assertEquals(200, r1.statusCode());
+        assertEquals(200, r2.statusCode());
+
+        String jobId1 = extractJobId(r1.body());
+        String jobId2 = extractJobId(r2.body());
+        assertNotNull(jobId1);
+        assertNotNull(jobId2);
+        assertNotEquals(jobId1, jobId2);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

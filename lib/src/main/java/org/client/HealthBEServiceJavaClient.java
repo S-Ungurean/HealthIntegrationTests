@@ -140,4 +140,64 @@ public class HealthBEServiceJavaClient {
 
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
+
+    public HttpResponse<String> submitSurvey(String jobId, String ageGroup, String symptomDuration,
+                                             String energyLevel, String gumColor) throws Exception {
+        String jsonBody = String.format("""
+            {
+                "age_group": "%s",
+                "symptom_duration": "%s",
+                "energy_level": "%s",
+                "gum_color": "%s"
+            }
+        """, ageGroup, symptomDuration, energyLevel, gumColor);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/v1/image/survey/" + jobId))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public HttpResponse<String> submitSurveyRaw(String jobId, String jsonBody) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/v1/image/survey/" + jobId))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public HttpResponse<String> submitTextOnlySurvey(String ageGroup, String symptomDuration,
+                                                     String energyLevel, String gumColor) throws Exception {
+        String jsonBody = String.format("""
+            {
+                "age_group": "%s",
+                "symptom_duration": "%s",
+                "energy_level": "%s",
+                "gum_color": "%s"
+            }
+        """, ageGroup, symptomDuration, energyLevel, gumColor);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/v1/image/survey"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public HttpResponse<String> submitTextOnlySurveyRaw(String jsonBody) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/v1/image/survey"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
 }
